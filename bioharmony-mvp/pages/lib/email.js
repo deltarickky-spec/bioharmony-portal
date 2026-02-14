@@ -1,1 +1,1 @@
-export * from "../../lib/email";
+export { sendEmail, renderWelcomeEmail, renderReportReadyEmail, renderUpsellEmail } from "../../lib/email";
