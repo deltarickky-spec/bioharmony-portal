@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Plans & Pricing | BioFrequency Analytics</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: #f8f4e8;
+      color: #1B4D4D;
+      line-height: 1.6;
+    }
+    .container { max-width: 1200px; margin: 0 auto; padding: 2rem 1.5rem; }
+    header {
+      text-align: center;
+      padding: 3rem 0;
+    }
+    header h1 {
+      font-size: 2.5rem;
+      font-weight: 800;
+      color: #1B4D4D;
+      margin-bottom: 0.5rem;
+    }
+    header p {
+      font-size: 1.15rem;
+      color: #5a7a7a;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    .plans {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 3rem;
+    }
+    .plan {
+      background: #fff;
+      border: 1px solid #e0d8ca;
+      border-radius: 16px;
+      padding: 2rem;
+      position: relative;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .plan:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 40px rgba(0,0,0,0.08);
+    }
+    .plan.popular {
+      border: 2px solid #C9B686;
+      box-shadow: 0 0 0 1px #C9B686;
+    }
+    .plan.popular::before {
+      content: "Most Popular";
+      position: absolute;
+      top: -12px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #C9B686;
+      color: #fff;
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 0.25rem 1rem;
+      border-radius: 20px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .plan h3 {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: #1B4D4D;
+      margin-bottom: 0.5rem;
+    }
+    .plan .price {
+      font-size: 2.75rem;
+      font-weight: 800;
+      color: #1B4D4D;
+      margin-bottom: 0.25rem;
+    }
+    .plan .price span {
+      font-size: 1rem;
+      font-weight: 500;
+      color: #5a7a7a;
+    }
+    .plan .subtitle {
+      color: #5a7a7a;
+      font-size: 0.9rem;
+      margin-bottom: 1.5rem;
+    }
+    .plan ul {
+      list-style: none;
+      margin-bottom: 2rem;
+    }
+    .plan ul li {
+      padding: 0.4rem 0;
+      font-size: 0.9rem;
+      color: #333;
+    }
+    .plan ul li::before {
+      content: "✓ ";
+      color: #1B4D4D;
+      font-weight: 700;
+    }
+    .plan .btn {
+      display: block;
+      text-align: center;
+      padding: 0.85rem;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      text-decoration: none;
+      transition: background 0.2s;
+    }
+    .btn-primary {
+      background: #1B4D4D;
+      color: #fff;
+    }
+    .btn-primary:hover { background: #133939; }
+    .btn-outline {
+      background: transparent;
+      color: #1B4D4D;
+      border: 2px solid #1B4D4D;
+    }
+    .btn-outline:hover { background: #1B4D4D; color: #fff; }
+    .btn-warning {
+      background: #d4a853;
+      color: #fff;
+    }
+    .btn-warning:hover { background: #b8913a; }
+    .section-title {
+      text-align: center;
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: #1B4D4D;
+      margin: 3rem 0 1.5rem;
+    }
+    .section-subtitle {
+      text-align: center;
+      color: #5a7a7a;
+      margin-bottom: 2rem;
+      font-size: 1rem;
+    }
+    .note {
+      background: #fff8e1;
+      border: 1px solid #e8d9b0;
+      border-radius: 12px;
+      padding: 1.5rem 2rem;
+      margin: 2rem 0;
+      text-align: center;
+      color: #5a7a7a;
+      font-size: 0.9rem;
+    }
+    .note a { color: #1B4D4D; text-decoration: underline; }
+    footer {
+      text-align: center;
+      padding: 2rem 0;
+      color: #5a7a7a;
+      font-size: 0.85rem;
+    }
+    @media (max-width: 640px) {
+      .plans { grid-template-columns: 1fr; }
+      header h1 { font-size: 1.75rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Plans & Pricing</h1>
+      <p>Choose the plan that fits your wellness journey</p>
+    </header>
+
+    <!-- DFY Scan Interpretation -->
+    <h2 class="section-title">Done-For-You Scan Interpretation</h2>
+    <p class="section-subtitle">Send us your scan — get back a plain-language report</p>
+
+    <div class="plans">
+      <div class="plan">
+        <h3>Essential Translation</h3>
+        <div class="price">$97 <span>per report</span></div>
+        <div class="subtitle">48-hour turnaround</div>
+        <ul>
+          <li>Full plain-English interpretation</li>
+          <li>Every body system explained</li>
+          <li>"What to pay attention to" summary</li>
+          <li>Works with any AO Scan export</li>
+        </ul>
+        <a class="btn btn-warning" href="mailto:hello@bioharmonysolutions.com?subject=Essential%20Translation%20%E2%80%94%20%2497">Order Now — Email Us</a>
+      </div>
+
+      <div class="plan popular">
+        <h3>Deep-Dive Interpretation</h3>
+        <div class="price">$197 <span>per report</span></div>
+        <div class="subtitle">48-hour turnaround</div>
+        <ul>
+          <li>Everything in Essential</li>
+          <li>Scan-over-scan trend analysis</li>
+          <li>Pattern connections across systems</li>
+          <li>Personalized wellness suggestions</li>
+          <li>30-day plain-language wellness plan</li>
+        </ul>
+        <a class="btn btn-warning" href="mailto:hello@bioharmonysolutions.com?subject=Deep-Dive%20Interpretation%20%E2%80%94%20%24197">Order Now — Email Us</a>
+      </div>
+
+      <div class="plan">
+        <h3>Pet Scan Translation</h3>
+        <div class="price">$77 <span>per report</span></div>
+        <div class="subtitle">Cats & Dogs — 48-hour turnaround</div>
+        <ul>
+          <li>Your pet's scan in plain English</li>
+          <li>Species-specific interpretation</li>
+          <li>What your pet can't tell you</li>
+          <li>48-hour delivery</li>
+        </ul>
+        <a class="btn btn-warning" href="mailto:hello@bioharmonysolutions.com?subject=Pet%20Scan%20Translation%20%E2%80%94%20%2477">Order Now — Email Us</a>
+      </div>
+    </div>
+
+    <!-- Practitioner Subscriptions -->
+    <h2 class="section-title">For Practitioners</h2>
+    <p class="section-subtitle">White-labeled reports under your own brand</p>
+
+    <div class="plans">
+      <div class="plan">
+        <h3>Solo Practitioner</h3>
+        <div class="price">$49 <span>/mo</span></div>
+        <div class="subtitle">10 scan reports per month</div>
+        <ul>
+          <li>10 AI-interpreted reports/month</li>
+          <li>Plain-language client summaries</li>
+          <li>Extra scans just $4.90 each</li>
+          <li>Cancel anytime</li>
+        </ul>
+        <a class="btn btn-primary" href="https://buy.stripe.com/5kQ3cwbTAbpT2Aheun4AU05">Subscribe — $49/mo</a>
+      </div>
+
+      <div class="plan popular">
+        <h3>Growth Practitioner</h3>
+        <div class="price">$79 <span>/mo</span></div>
+        <div class="subtitle">25 scan reports per month</div>
+        <ul>
+          <li>25 AI-interpreted reports/month</li>
+          <li>Full white-label branding</li>
+          <li>Extra scans just $3.16 each</li>
+          <li>Priority turnaround</li>
+        </ul>
+        <a class="btn btn-primary" href="https://buy.stripe.com/4gMfZi2j02Tn6Qx2LF4AU06">Subscribe — $79/mo</a>
+      </div>
+
+      <div class="plan">
+        <h3>Elite Practitioner</h3>
+        <div class="price">$149 <span>/mo</span></div>
+        <div class="subtitle">60 scan reports per month</div>
+        <ul>
+          <li>60 AI-interpreted reports/month</li>
+          <li>All scan types incl. Dental</li>
+          <li>Full white-label branding</li>
+          <li>Extra scans just $2.48 each</li>
+        </ul>
+        <a class="btn btn-primary" href="https://buy.stripe.com/aFa4gAf5M79D5Mtfyr4AU07">Subscribe — $149/mo</a>
+      </div>
+    </div>
+
+    <div class="note">
+      <strong>⚠️ DFY payment links coming soon.</strong> The Essential & Pet scan checkouts are being set up with Stripe. In the meantime, emailing us works — we'll invoice you and get started within 24 hours.
+      <br><br>
+      Questions? <a href="mailto:hello@bioharmonysolutions.com">hello@bioharmonysolutions.com</a>
+    </div>
+
+    <footer>
+      BioFrequency Analytics &middot; A division of BioHarmony Solutions
+    </footer>
+  </div>
+</body>
+</html>
