@@ -243,6 +243,19 @@
     .btn-gold { background:var(--gold); color:#fff; }
     .btn-gold:hover { background:#b8a060; }
 
+
+    /* Materials */
+    .material-row { display:flex; align-items:center; justify-content:space-between; padding:0.45rem 0; border-bottom:1px solid var(--border-subtle); }
+    .material-row:last-child { border-bottom:none; }
+    .material-row .m-name { font-size:0.82rem; color:var(--text-2); }
+    .material-row .m-qty { font-size:0.75rem; color:var(--text-3); }
+    .material-row .m-price { font-size:0.82rem; font-weight:600; color:var(--text-1); min-width:80px; text-align:right; }
+    .variance-banner {
+      background:var(--gold-10); border:1.5px solid var(--gold); border-radius:12px;
+      padding:1rem; font-size:0.8rem; color:var(--text-2); line-height:1.5;
+    }
+    .variance-banner strong { color:var(--text-1); }
+
     /* Print */
     @media print {
       .topbar, .tabs, .actions, .no-print { display:none !important; }
@@ -299,6 +312,7 @@
       <div class="tab active" onclick="showTab('build')">🏗️ Build Cost</div>
       <div class="tab" onclick="showTab('finance')">🏦 Financing</div>
       <div class="tab" onclick="showTab('rental')">📈 Rental Yield</div>
+      <div class="tab" onclick="showTab('materials')">🔨 Materials</div>
     </div>
 
     <!-- BUILD TAB -->
@@ -546,6 +560,87 @@
       </div>
     </div>
 
+    <!-- MATERIALS TAB -->
+    <div class="tab-panel" id="tab-materials">
+      <div class="grid-2">
+        <div>
+          <div class="card">
+            <h3>🔨 Material Choices</h3>
+            <div class="field">
+              <label>Foundation</label>
+              <div class="input-wrap">
+                <select id="m-foundation" onchange="calcMaterials()">
+                  <option value="1.0">Standard strip footing</option>
+                  <option value="1.25">Deep footing / rocky site</option>
+                  <option value="0.90">Raft / slab-on-grade</option>
+                </select>
+              </div>
+            </div>
+            <div class="field">
+              <label>Walls</label>
+              <div class="input-wrap">
+                <select id="m-walls" onchange="calcMaterials()">
+                  <option value="block">Concrete block (6")</option>
+                  <option value="drywall">Drywall / sheetrock interior</option>
+                  <option value="block_drywall">Block exterior + drywall interior</option>
+                </select>
+              </div>
+            </div>
+            <div class="field">
+              <label>Roofing</label>
+              <div class="input-wrap">
+                <select id="m-roofing" onchange="calcMaterials()">
+                  <option value="zinc">Zinc / galvanized sheet</option>
+                  <option value="shingle">Asphalt shingle</option>
+                  <option value="membrane">Membrane (flat roof)</option>
+                </select>
+              </div>
+            </div>
+            <div class="field">
+              <label>Windows & Doors</label>
+              <div class="input-wrap">
+                <select id="m-windows" onchange="calcMaterials()">
+                  <option value="1.0">Standard aluminum</option>
+                  <option value="1.35">Premium UPVC / tempered glass</option>
+                  <option value="0.85">Economy / louvered</option>
+                </select>
+              </div>
+            </div>
+            <div class="field">
+              <label>Interior Finishes</label>
+              <div class="input-wrap">
+                <select id="m-finishes" onchange="calcMaterials()">
+                  <option value="0.85">Basic (×0.85)</option>
+                  <option value="1.00" selected>Standard (×1.00)</option>
+                  <option value="1.35">Premium (×1.35)</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div class="card">
+            <h3>📋 Estimated Bill of Materials</h3>
+            <div id="billOfMaterials"></div>
+            <div style="margin-top:0.75rem; padding-top:0.75rem; border-top:2px solid var(--border);">
+              <div class="break-row">
+                <span class="b-name" style="font-weight:700;">Material Cost Subtotal</span>
+                <span class="b-val" style="font-weight:800;" id="m-subtotal">--</span>
+              </div>
+            </div>
+          </div>
+          <div class="card" style="margin-top:1rem;">
+            <h3>⚠️ Parish & Hardware Variance</h3>
+            <div class="variance-banner">
+              <strong>Prices are 15–20% above 2025 levels</strong> due to post-hurricane reconstruction demand.
+              Actual costs vary by parish, supplier, and transport distance.
+              Quantities are estimates based on floor-area heuristics — <strong>verify with a Quantity Surveyor</strong> before contracting.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div class="actions no-print">
       <button class="btn btn-primary" onclick="copyShare()">🔗 Copy Share Link</button>
       <button class="btn btn-outline" onclick="window.print()">🖨️ Print Quote</button>
@@ -592,6 +687,24 @@
       labor: '#b8c9c9',
       contingency: '#e8d9b0'
     };
+    // Material prices (loaded from ~/ai-vault/jamaica-property-intel/material-prices-2026.yaml)
+    // Midpoints used for estimates. Ranges reflect parish/supplier variance.
+    const materialPrices = {
+      cement_42kg_bag:     { mid: 1625,   unit: 'bag',   label: 'Cement (42kg)' },
+      block_6in:           { mid: 180,    unit: 'block', label: 'Concrete block 6"' },
+      block_4in:           { mid: 160,    unit: 'block', label: 'Concrete block 4" (interior)' },
+      steel_rebar_half_in: { mid: 173000, unit: 'ton',   label: 'Steel rebar 1/2"' },
+      wash_sand:           { mid: 4850,   unit: 'yard',  label: 'Wash sand' },
+      gravel:              { mid: 4525,   unit: 'yard',  label: 'Gravel' },
+      ready_mix_3000psi:   { mid: 35000,  unit: 'm³',    label: 'Ready-mix concrete' },
+      plyboard_58:         { mid: 5700,   unit: 'sheet', label: 'Plyboard 5/8"' },
+      sheetrock_regular:   { mid: 2691,   unit: 'sheet', label: 'Sheetrock (drywall)' },
+      zinc_roofing_12ft:   { mid: 3020,   unit: 'sheet', label: 'Zinc roofing 12ft' },
+      water_tank_650gal:   { mid: 32500,  unit: 'ea',    label: 'Water tank 650gal' }
+    };
+    const roofingMult = { zinc: 1.0, shingle: 1.45, membrane: 1.80 };
+    const foundationMult = { '1.0': 1.0, '1.25': 1.25, '0.90': 0.90 };
+
 
     const splitLabels = {
       foundation: 'Foundation',
@@ -688,6 +801,7 @@
       document.getElementById('tab-'+id).classList.add('active');
       if (id==='finance') calcFinance();
       if (id==='rental') calcRental();
+      if (id==='materials') calcMaterials();
     }
 
     // ===================== BUILD CALC =====================
@@ -712,7 +826,7 @@
       const parts = {};
       let sumSplit = 0;
       for (const k in split) {
-        parts[k] = baseJMD * (split[k]/100);
+        parts[k] = baseJMD * (split[k]/100) * (k==='finishing' ? (state.finishesMult||1) : 1);
         sumSplit += split[k];
       }
       parts.contingency = contingency;
@@ -877,6 +991,120 @@
       document.getElementById('re-years').textContent = years > 0 ? years.toFixed(1)+' yrs' : '∞';
     }
 
+
+    // ===================== MATERIALS & COST EXPLORER =====================
+    function calcMaterials() {
+      const {stories,beds,baths,powder,garage,type,parish,currency,rates} = state;
+      const sqft = stories*350 + beds*180 + baths*65 + powder*35 + garage*280;
+      const baseJMD = sqft * rates[type] * parish;
+
+      const fMult = parseFloat(document.getElementById('m-foundation').value);
+      const walls = document.getElementById('m-walls').value;
+      const roofType = document.getElementById('m-roofing').value;
+      const winMult = parseFloat(document.getElementById('m-windows').value);
+      const finMult = parseFloat(document.getElementById('m-finishes').value);
+
+      // Estimate quantities from floor area heuristics
+      const wallAreaExt = sqft * 0.42;      // exterior wall area estimate
+      const wallAreaInt = sqft * 0.35;      // interior wall area estimate
+      const roofArea = sqft * 1.18;         // roof with overhang + pitch
+      const foundationVol = sqft * 0.018;   // m³ rough foundation volume
+
+      // Block counts
+      const blockCover = 0.67; // sqft per 6" block
+      const blocks6 = Math.ceil(wallAreaExt / blockCover);
+      const blocks4 = walls !== 'block' ? Math.ceil(wallAreaInt / blockCover * 0.6) : 0;
+
+      // Cement: ~1 bag per 28 blocks + foundation
+      const cementBags = Math.ceil(blocks6/28 + blocks4/32 + foundationVol*5);
+
+      // Rebar: ~1.6 kg per m² of house
+      const rebarKg = sqft * 0.092903 * 1.6 * 1000;
+      const rebarTons = rebarKg / 1000;
+
+      // Ready-mix
+      const readyMix = Math.ceil(foundationVol * fMult);
+
+      // Sand & gravel
+      const sandYards = Math.ceil(readyMix * 0.55);
+      const gravelYards = Math.ceil(readyMix * 0.45);
+
+      // Roofing sheets (12ft zinc ≈ 32 sqft coverage)
+      const zincSheets = roofType === 'zinc' ? Math.ceil(roofArea / 32) : 0;
+      const shingleSq = roofType === 'shingle' ? Math.ceil(roofArea / 100) : 0; // roofing squares
+      const membraneSq = roofType === 'membrane' ? Math.ceil(roofArea / 100) : 0;
+
+      // Sheetrock (4x8 = 32 sqft)
+      const sheetrockSheets = (walls === 'drywall' || walls === 'block_drywall') ? Math.ceil(wallAreaInt / 32) : 0;
+
+      // Plyboard (for formwork, ceilings)
+      const plyboardSheets = Math.ceil(sqft * 0.05);
+
+      // Windows/Doors estimate (basic count)
+      const windowCount = beds + baths + 2;
+      const doorCount = beds + baths + 1;
+      const winDoorAllowance = windowCount * 18500 + doorCount * 12000; // JMD allowance per unit
+
+      // Water tank
+      const waterTank = 1;
+
+      // Build bill of materials rows
+      let rows = '';
+      let subtotal = 0;
+      function addRow(key, qty, extraLabel) {
+        if (qty <= 0) return;
+        const p = materialPrices[key];
+        if (!p) return;
+        const total = qty * p.mid;
+        subtotal += total;
+        rows += `<div class="material-row">
+          <span class="m-name">${p.label}${extraLabel ? ' <span style="color:var(--text-4);font-size:0.72rem;">'+extraLabel+'</span>' : ''}</span>
+          <span class="m-qty">${qty.toLocaleString(undefined,{maximumFractionDigits:1})} ${p.unit}</span>
+          <span class="m-price">${fmtFull(total, 'JMD')}</span>
+        </div>`;
+      }
+
+      addRow('cement_42kg_bag', cementBags, 'est.');
+      addRow('block_6in', blocks6, 'est.');
+      if (blocks4 > 0) addRow('block_4in', blocks4, 'est.');
+      addRow('steel_rebar_half_in', parseFloat(rebarTons.toFixed(2)), 'est.');
+      addRow('ready_mix_3000psi', readyMix, 'est.');
+      addRow('wash_sand', sandYards, 'est.');
+      addRow('gravel', gravelYards, 'est.');
+      if (zincSheets > 0) addRow('zinc_roofing_12ft', zincSheets, 'est.');
+      if (sheetrockSheets > 0) addRow('sheetrock_regular', sheetrockSheets, 'est.');
+      addRow('plyboard_58', plyboardSheets, 'est.');
+      addRow('water_tank_650gal', waterTank);
+
+      // Windows/Doors as a line item
+      if (winDoorAllowance > 0) {
+        subtotal += winDoorAllowance * winMult;
+        rows += `<div class="material-row">
+          <span class="m-name">Windows & Doors (${windowCount} win + ${doorCount} dr)${winMult !== 1.0 ? ' <span style="color:var(--text-4);font-size:0.72rem;">×'+winMult.toFixed(2)+'</span>' : ''}</span>
+          <span class="m-qty">allowance</span>
+          <span class="m-price">${fmtFull(winDoorAllowance * winMult, 'JMD')}</span>
+        </div>`;
+      }
+
+      // Roofing allowance for non-zinc
+      if (roofType === 'shingle') {
+        const shingleCost = shingleSq * 45000; // JMD per roofing square estimate
+        subtotal += shingleCost;
+        rows += `<div class="material-row"><span class="m-name">Asphalt shingles</span><span class="m-qty">${shingleSq} sq</span><span class="m-price">${fmtFull(shingleCost, 'JMD')}</span></div>`;
+      } else if (roofType === 'membrane') {
+        const memCost = membraneSq * 65000;
+        subtotal += memCost;
+        rows += `<div class="material-row"><span class="m-name">Roof membrane</span><span class="m-qty">${membraneSq} sq</span><span class="m-price">${fmtFull(memCost, 'JMD')}</span></div>`;
+      }
+
+      document.getElementById('billOfMaterials').innerHTML = rows || '<p style="font-size:0.82rem;color:var(--text-3);">Select construction options to see estimated quantities.</p>';
+      document.getElementById('m-subtotal').textContent = fmtFull(subtotal, 'JMD') + '  (' + fmtFull(fromJMD(subtotal, currency), currency) + ')';
+
+      // Update finishing multiplier in main calc
+      state.finishesMult = finMult;
+      calc();
+    }
+
     // ===================== URL STATE =====================
     function updateURL() {
       const p = new URLSearchParams();
@@ -885,6 +1113,11 @@
       p.set('p',state.parish); p.set('c',state.currency); p.set('u',state.unit);
       p.set('rb',state.custom.block); p.set('rf',state.custom.foam); p.set('rm',state.custom.modular);
       for (const k in state.split) p.set('sp_'+k, state.split[k]);
+      p.set('mf', document.getElementById('m-foundation').value);
+      p.set('mw', document.getElementById('m-walls').value);
+      p.set('mr', document.getElementById('m-roofing').value);
+      p.set('mwi', document.getElementById('m-windows').value);
+      p.set('mfi', document.getElementById('m-finishes').value);
       history.replaceState(null,'','?'+p.toString());
     }
     function loadURL() {
@@ -904,6 +1137,11 @@
       if (p.has('rm')) state.custom.modular = parseFloat(p.get('rm'));
       state.rates = {...state.custom};
       for (const k in state.split) { if (p.has('sp_'+k)) state.split[k] = parseFloat(p.get('sp_'+k)); }
+      if (p.has('mf')) document.getElementById('m-foundation').value = p.get('mf');
+      if (p.has('mw')) document.getElementById('m-walls').value = p.get('mw');
+      if (p.has('mr')) document.getElementById('m-roofing').value = p.get('mr');
+      if (p.has('mwi')) document.getElementById('m-windows').value = p.get('mwi');
+      if (p.has('mfi')) document.getElementById('m-finishes').value = p.get('mfi');
 
       // Update UI
       document.getElementById('v-stories').textContent = state.stories;
@@ -938,6 +1176,11 @@
       document.getElementById('f-rate').value=8; document.getElementById('f-term').value=30;
       document.getElementById('r-rent').value=120000; document.getElementById('r-expense').value=15;
       document.getElementById('r-mgmt').value=10;
+      document.getElementById('m-foundation').value='1.0';
+      document.getElementById('m-walls').value='block';
+      document.getElementById('m-roofing').value='zinc';
+      document.getElementById('m-windows').value='1.0';
+      document.getElementById('m-finishes').value='1.00';
       setCurrency('JMD'); setUnit('ft'); setType('block');
       history.replaceState(null,'',location.pathname);
     }
@@ -948,6 +1191,7 @@
       calc();
       calcFinance();
       calcRental();
+      calcMaterials();
       // Build breakdown editor
       let ed = '';
       for (const k in state.split) {
@@ -961,6 +1205,8 @@
       }
       document.getElementById('breakdownEditor').innerHTML = ed;
     }
+    // Init materials state
+    state.finishesMult = parseFloat(document.getElementById('m-finishes').value) || 1;
     init();
   </script>
 </body>
