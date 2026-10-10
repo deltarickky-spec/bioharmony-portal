@@ -1,0 +1,967 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Jamaica Build Calculator | BioHarmony Solutions</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f8f4e8;
+      --bg-card: #ffffff;
+      --bg-input: #fdfcf7;
+      --text-1: #1B4D4D;
+      --text-2: #3a6b6b;
+      --text-3: #7a9a9a;
+      --text-4: #a8c0c0;
+      --accent: #1B4D4D;
+      --accent-5: rgba(27,77,77,0.05);
+      --accent-10: rgba(27,77,77,0.10);
+      --accent-15: rgba(27,77,77,0.15);
+      --accent-30: rgba(27,77,77,0.30);
+      --gold: #C9B686;
+      --gold-20: rgba(201,182,134,0.20);
+      --gold-10: rgba(201,182,134,0.10);
+      --border: #e0d8ca;
+      --border-subtle: #ece5d8;
+      --shadow: rgba(27,77,77,0.06);
+      --danger: #c0392b;
+      --success: #27ae60;
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    html { scroll-behavior:smooth; }
+    body {
+      font-family:'Inter',-apple-system,sans-serif;
+      background:var(--bg);
+      color:var(--text-1);
+      line-height:1.55;
+      font-size:15px;
+    }
+    .container { max-width:1100px; margin:0 auto; padding:1.25rem; }
+    header {
+      text-align:center;
+      padding:2.5rem 1rem 1.5rem;
+    }
+    header .logo {
+      width:48px; height:48px; border-radius:12px;
+      background:linear-gradient(135deg,var(--accent),#2a6b6b);
+      display:inline-flex; align-items:center; justify-content:center;
+      color:#fff; font-weight:800; font-size:18px; margin-bottom:0.75rem;
+      box-shadow:0 4px 12px var(--shadow);
+    }
+    header h1 { font-size:1.7rem; font-weight:800; color:var(--text-1); margin-bottom:0.25rem; }
+    header p { color:var(--text-3); font-size:0.9rem; max-width:480px; margin:0 auto; }
+
+    /* Top bar */
+    .topbar {
+      position:sticky; top:0; z-index:50;
+      background:rgba(248,244,232,0.92); backdrop-filter:blur(12px);
+      border-bottom:1px solid var(--border-subtle);
+      padding:0.6rem 1.25rem;
+    }
+    .topbar-inner {
+      max-width:1100px; margin:0 auto;
+      display:flex; align-items:center; gap:0.75rem; flex-wrap:wrap; justify-content:space-between;
+    }
+    .fx-badge {
+      font-size:0.72rem; color:var(--text-3); background:var(--bg-card);
+      padding:0.25rem 0.6rem; border-radius:20px; border:1px solid var(--border);
+    }
+    .fx-badge .dot {
+      display:inline-block; width:6px; height:6px; border-radius:50%;
+      background:var(--success); margin-right:4px;
+    }
+    .fx-badge.stale .dot { background:var(--gold); }
+    .pill-group { display:flex; gap:0.35rem; flex-wrap:wrap; }
+    .pill {
+      border:1px solid var(--border); background:var(--bg-card);
+      border-radius:20px; padding:0.35rem 0.7rem; font-size:0.78rem;
+      font-weight:600; color:var(--text-2); cursor:pointer;
+      transition:all .15s; user-select:none;
+    }
+    .pill:hover { border-color:var(--accent); }
+    .pill.active {
+      background:var(--accent); color:#fff; border-color:var(--accent);
+      box-shadow:0 2px 8px var(--shadow);
+    }
+
+    /* Tabs */
+    .tabs {
+      display:flex; gap:0.25rem;
+      border-bottom:2px solid var(--border-subtle); margin-bottom:1.25rem;
+      overflow-x:auto; -webkit-overflow-scrolling:touch;
+    }
+    .tab {
+      padding:0.7rem 1.1rem; font-size:0.85rem; font-weight:700;
+      color:var(--text-3); cursor:pointer; white-space:nowrap;
+      border-bottom:2.5px solid transparent; margin-bottom:-2px;
+      transition:all .15s;
+    }
+    .tab:hover { color:var(--text-1); }
+    .tab.active { color:var(--accent); border-bottom-color:var(--gold); }
+
+    .tab-panel { display:none; }
+    .tab-panel.active { display:block; animation:fadeUp .25s ease; }
+    @keyframes fadeUp { from{opacity:0;transform:translateY(6px);} to{opacity:1;transform:none;} }
+
+    /* Cards */
+    .card {
+      background:var(--bg-card); border:1px solid var(--border);
+      border-radius:16px; padding:1.25rem;
+      box-shadow:0 2px 12px var(--shadow);
+    }
+    .card + .card { margin-top:1rem; }
+    .card h3 {
+      font-size:0.95rem; font-weight:700; color:var(--text-1);
+      margin-bottom:1rem; display:flex; align-items:center; gap:0.5rem;
+    }
+    .grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
+    .grid-3 { display:grid; grid-template-columns:repeat(3,1fr); gap:1rem; }
+    .grid-4 { display:grid; grid-template-columns:repeat(4,1fr); gap:0.75rem; }
+    @media(max-width:720px) {
+      .grid-2,.grid-3,.grid-4 { grid-template-columns:1fr 1fr; }
+    }
+    @media(max-width:480px) {
+      .grid-2,.grid-3,.grid-4 { grid-template-columns:1fr; }
+    }
+
+    /* Inputs */
+    .field { margin-bottom:0.9rem; }
+    .field label {
+      display:block; font-size:0.68rem; font-weight:700;
+      text-transform:uppercase; letter-spacing:0.06em;
+      color:var(--text-3); margin-bottom:0.3rem;
+    }
+    .input-wrap {
+      display:flex; align-items:center;
+      border:1.5px solid var(--border); border-radius:12px;
+      background:var(--bg-input); overflow:hidden;
+      transition:border-color .15s;
+    }
+    .input-wrap:focus-within { border-color:var(--accent); }
+    .input-wrap input, .input-wrap select {
+      flex:1; border:none; background:transparent;
+      padding:0.65rem 0.8rem; font-size:0.95rem; color:var(--text-1);
+      outline:none; min-width:0;
+    }
+    .input-wrap .suffix {
+      padding:0 0.8rem; font-size:0.82rem; font-weight:600;
+      color:var(--text-3); border-left:1px solid var(--border);
+      white-space:nowrap;
+    }
+    .input-wrap .prefix {
+      padding:0 0.6rem; font-size:0.9rem; font-weight:600;
+      color:var(--text-3);
+    }
+    select { cursor:pointer; appearance:none; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%237a9a9a' d='M6 8L1 3h10z'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 0.7rem center; padding-right:2rem !important; }
+
+    /* Stepper */
+    .stepper { display:flex; align-items:center; gap:0.5rem; }
+    .stepper button {
+      width:34px; height:34px; border-radius:10px;
+      border:1.5px solid var(--border); background:var(--bg-card);
+      font-size:1.1rem; font-weight:700; color:var(--text-1);
+      cursor:pointer; display:flex; align-items:center; justify-content:center;
+      transition:all .15s;
+    }
+    .stepper button:hover { background:var(--accent); color:#fff; border-color:var(--accent); }
+    .stepper span { min-width:28px; text-align:center; font-weight:800; font-size:1.1rem; }
+
+    /* Construction type selector */
+    .type-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:0.6rem; margin-bottom:1rem; }
+    .type-card {
+      border:2px solid var(--border); border-radius:14px; padding:0.9rem 0.6rem;
+      text-align:center; cursor:pointer; transition:all .15s; background:var(--bg-card);
+    }
+    .type-card:hover { border-color:var(--accent-30); }
+    .type-card.active { border-color:var(--accent); background:var(--accent-5); }
+    .type-card .t-title { font-weight:700; font-size:0.85rem; margin-bottom:0.15rem; }
+    .type-card .t-rate { font-size:0.75rem; color:var(--text-3); }
+
+    /* Big total */
+    .total-box {
+      background:linear-gradient(135deg,var(--accent),#235d5d);
+      color:#fff; border-radius:18px; padding:1.5rem;
+      text-align:center; box-shadow:0 8px 28px rgba(27,77,77,0.25);
+    }
+    .total-box .t-label { font-size:0.7rem; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; opacity:0.8; margin-bottom:0.3rem; }
+    .total-box .t-amount { font-size:2.4rem; font-weight:800; line-height:1.1; }
+    .total-box .t-sub { font-size:0.8rem; opacity:0.75; margin-top:0.4rem; }
+
+    /* Breakdown */
+    .break-row { display:flex; align-items:center; justify-content:space-between; padding:0.5rem 0; border-bottom:1px solid var(--border-subtle); }
+    .break-row:last-child { border-bottom:none; }
+    .break-row .b-name { font-size:0.85rem; color:var(--text-2); }
+    .break-row .b-pct { font-size:0.72rem; color:var(--text-4); font-weight:600; margin-left:auto; margin-right:0.75rem; }
+    .break-row .b-val { font-size:0.9rem; font-weight:700; color:var(--text-1); min-width:90px; text-align:right; }
+    .break-row input.pct-input {
+      width:52px; text-align:right; padding:0.2rem 0.4rem;
+      border:1.5px solid var(--border); border-radius:8px;
+      font-size:0.78rem; font-weight:700; color:var(--text-1); margin-right:0.5rem;
+    }
+
+    /* Chart */
+    .chart-wrap { display:flex; align-items:center; gap:1.5rem; flex-wrap:wrap; }
+    .donut { width:140px; height:140px; flex-shrink:0; }
+    .legend { flex:1; min-width:180px; }
+    .legend-item { display:flex; align-items:center; gap:0.5rem; font-size:0.8rem; margin-bottom:0.4rem; }
+    .legend-dot { width:10px; height:10px; border-radius:3px; flex-shrink:0; }
+
+    /* Financing */
+    .fin-grid { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
+    .fin-result {
+      background:var(--gold-10); border:1.5px solid var(--gold);
+      border-radius:14px; padding:1.25rem; text-align:center;
+    }
+    .fin-result .fr-label { font-size:0.7rem; font-weight:700; text-transform:uppercase; color:var(--text-3); margin-bottom:0.3rem; }
+    .fin-result .fr-val { font-size:1.6rem; font-weight:800; color:var(--text-1); }
+    .fin-result .fr-sub { font-size:0.78rem; color:var(--text-3); margin-top:0.2rem; }
+
+    /* Rental */
+    .yield-box {
+      background:linear-gradient(135deg,var(--gold-20),var(--gold-10));
+      border:1.5px solid var(--gold); border-radius:14px;
+      padding:1.25rem; text-align:center;
+    }
+    .yield-box .y-label { font-size:0.7rem; font-weight:700; text-transform:uppercase; color:var(--text-3); }
+    .yield-box .y-val { font-size:1.8rem; font-weight:800; color:var(--text-1); margin:0.2rem 0; }
+    .yield-box .y-sub { font-size:0.8rem; color:var(--text-3); }
+
+    /* Share / actions */
+    .actions { display:flex; gap:0.6rem; flex-wrap:wrap; margin-top:1.25rem; }
+    .btn {
+      display:inline-flex; align-items:center; gap:0.4rem;
+      padding:0.6rem 1.1rem; border-radius:12px;
+      font-size:0.82rem; font-weight:700; cursor:pointer;
+      border:1.5px solid transparent; transition:all .15s;
+    }
+    .btn-primary { background:var(--accent); color:#fff; }
+    .btn-primary:hover { background:#133939; }
+    .btn-outline { background:transparent; color:var(--text-1); border-color:var(--border); }
+    .btn-outline:hover { border-color:var(--accent); }
+    .btn-gold { background:var(--gold); color:#fff; }
+    .btn-gold:hover { background:#b8a060; }
+
+    /* Print */
+    @media print {
+      .topbar, .tabs, .actions, .no-print { display:none !important; }
+      body { background:#fff; }
+      .card { box-shadow:none; border:1px solid #ddd; break-inside:avoid; }
+      .tab-panel { display:block !important; }
+    }
+
+    footer { text-align:center; padding:2rem 1rem; font-size:0.75rem; color:var(--text-4); }
+    footer a { color:var(--accent); text-decoration:none; }
+
+    /* Toast */
+    .toast {
+      position:fixed; bottom:1.25rem; right:1.25rem;
+      background:var(--text-1); color:#fff;
+      padding:0.7rem 1.1rem; border-radius:12px;
+      font-size:0.82rem; font-weight:600;
+      box-shadow:0 6px 20px rgba(0,0,0,0.18);
+      transform:translateY(120%); transition:transform .3s ease;
+      z-index:100;
+    }
+    .toast.show { transform:translateY(0); }
+  </style>
+</head>
+<body>
+  <div class="topbar no-print">
+    <div class="topbar-inner">
+      <div class="pill-group">
+        <span class="fx-badge" id="fxBadge"><span class="dot"></span>FX <span id="fxDate">--</span></span>
+      </div>
+      <div class="pill-group">
+        <span class="pill active" data-c="JMD" onclick="setCurrency('JMD')">🇯🇲 JMD</span>
+        <span class="pill" data-c="CAD" onclick="setCurrency('CAD')">🇨🇦 CAD</span>
+        <span class="pill" data-c="USD" onclick="setCurrency('USD')">🇺🇸 USD</span>
+        <span class="pill" data-c="GBP" onclick="setCurrency('GBP')">🇬🇧 GBP</span>
+        <span class="pill" data-c="EUR" onclick="setCurrency('EUR')">🇪🇺 EUR</span>
+        <span class="pill" data-c="AUD" onclick="setCurrency('AUD')">🇦🇺 AUD</span>
+      </div>
+      <div class="pill-group">
+        <span class="pill active" data-u="ft" onclick="setUnit('ft')">ft²</span>
+        <span class="pill" data-u="m" onclick="setUnit('m')">m²</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+    <header>
+      <div class="logo">B</div>
+      <h1>Jamaica Build Calculator</h1>
+      <p>Estimate construction costs across all 14 parishes. Built for the diaspora by BioHarmony Solutions.</p>
+    </header>
+
+    <div class="tabs no-print">
+      <div class="tab active" onclick="showTab('build')">🏗️ Build Cost</div>
+      <div class="tab" onclick="showTab('finance')">🏦 Financing</div>
+      <div class="tab" onclick="showTab('rental')">📈 Rental Yield</div>
+    </div>
+
+    <!-- BUILD TAB -->
+    <div class="tab-panel active" id="tab-build">
+      <div class="grid-2">
+        <div>
+          <div class="card">
+            <h3>📐 House Specs</h3>
+            <div class="grid-3">
+              <div class="field">
+                <label>Stories</label>
+                <div class="stepper"><button onclick="adj('stories',-1)">−</button><span id="v-stories">1</span><button onclick="adj('stories',1)">+</button></div>
+              </div>
+              <div class="field">
+                <label>Bedrooms</label>
+                <div class="stepper"><button onclick="adj('beds',-1)">−</button><span id="v-beds">3</span><button onclick="adj('beds',1)">+</button></div>
+              </div>
+              <div class="field">
+                <label>Bathrooms</label>
+                <div class="stepper"><button onclick="adj('baths',-1)">−</button><span id="v-baths">2</span><button onclick="adj('baths',1)">+</button></div>
+              </div>
+              <div class="field">
+                <label>Powder Rooms</label>
+                <div class="stepper"><button onclick="adj('powder',-1)">−</button><span id="v-powder">0</span><button onclick="adj('powder',1)">+</button></div>
+              </div>
+              <div class="field">
+                <label>Car Garages</label>
+                <div class="stepper"><button onclick="adj('garage',-1)">−</button><span id="v-garage">1</span><button onclick="adj('garage',1)">+</button></div>
+              </div>
+              <div class="field">
+                <label>Parish</label>
+                <div class="input-wrap">
+                  <select id="parish" onchange="calc()">
+                    <option value="1.00">All Jamaica (baseline)</option>
+                    <option value="1.15">Kingston & St. Andrew</option>
+                    <option value="1.08">St. Catherine</option>
+                    <option value="1.10">St. Ann</option>
+                    <option value="1.12">St. James</option>
+                    <option value="1.05">Manchester</option>
+                    <option value="1.02">St. Elizabeth</option>
+                    <option value="1.04">Clarendon</option>
+                    <option value="1.03">Westmoreland</option>
+                    <option value="1.06">Trelawny</option>
+                    <option value="1.01">St. Mary</option>
+                    <option value="1.00">Hanover</option>
+                    <option value="1.00">Portland</option>
+                    <option value="1.02">St. Thomas</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>🏗️ Construction Type</h3>
+            <div class="type-grid">
+              <div class="type-card active" id="t-block" onclick="setType('block')">
+                <div class="t-title">Concrete Block</div>
+                <div class="t-rate" id="r-block">J$22,000 / ft²</div>
+              </div>
+              <div class="type-card" id="t-foam" onclick="setType('foam')">
+                <div class="t-title">Foam / ICF</div>
+                <div class="t-rate" id="r-foam">J$17,500 / ft²</div>
+              </div>
+              <div class="type-card" id="t-modular" onclick="setType('modular')">
+                <div class="t-title">Precast / Modular</div>
+                <div class="t-rate" id="r-modular">J$17,500 / ft²</div>
+              </div>
+            </div>
+            <div class="field">
+              <label>Edit rate for selected type (JMD per ft²)</label>
+              <div class="input-wrap">
+                <input type="number" id="customRate" value="22000" min="5000" step="100" oninput="customRateChange()">
+                <span class="suffix">JMD / ft²</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>🔧 Cost Breakdown %</h3>
+            <div id="breakdownEditor"></div>
+          </div>
+        </div>
+
+        <div>
+          <div class="total-box">
+            <div class="t-label">Estimated Build Cost</div>
+            <div class="t-amount" id="totalCost">J$32.3M</div>
+            <div class="t-sub" id="totalSub">≈ CAD $286K · 1,335 ft² · Concrete Block</div>
+          </div>
+
+          <div class="card" style="margin-top:1rem;">
+            <h3>📊 Floor Area</h3>
+            <div class="break-row">
+              <span class="b-name">Stories</span>
+              <span class="b-val" id="a-stories">350 ft²</span>
+            </div>
+            <div class="break-row">
+              <span class="b-name">Bedrooms</span>
+              <span class="b-val" id="a-beds">540 ft²</span>
+            </div>
+            <div class="break-row">
+              <span class="b-name">Bathrooms</span>
+              <span class="b-val" id="a-baths">130 ft²</span>
+            </div>
+            <div class="break-row">
+              <span class="b-name">Powder Rooms</span>
+              <span class="b-val" id="a-powder">0 ft²</span>
+            </div>
+            <div class="break-row">
+              <span class="b-name">Garages</span>
+              <span class="b-val" id="a-garage">280 ft²</span>
+            </div>
+            <div class="break-row" style="border-top:2px solid var(--border);margin-top:0.4rem;padding-top:0.6rem;">
+              <span class="b-name" style="font-weight:700;">Total Floor Area</span>
+              <span class="b-val" style="font-weight:800;" id="a-total">1,300 ft²</span>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>📈 Cost Breakdown</h3>
+            <div class="chart-wrap">
+              <svg class="donut" viewBox="0 0 100 100" id="donutChart"></svg>
+              <div class="legend" id="chartLegend"></div>
+            </div>
+            <div id="costLines" style="margin-top:0.75rem;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FINANCING TAB -->
+    <div class="tab-panel" id="tab-finance">
+      <div class="grid-2">
+        <div>
+          <div class="card">
+            <h3>🏦 Loan Terms</h3>
+            <div class="field">
+              <label>Total Build Cost</label>
+              <div class="input-wrap"><input type="text" id="f-total" readonly style="font-weight:700;"><span class="suffix" id="f-curr">JMD</span></div>
+            </div>
+            <div class="field">
+              <label>Deposit %</label>
+              <div class="input-wrap">
+                <input type="range" id="f-deposit" min="10" max="20" step="5" value="10" style="padding:0.4rem 0.8rem;" oninput="calcFinance()">
+                <span class="suffix" id="f-deposit-pct">10%</span>
+              </div>
+            </div>
+            <div class="field">
+              <label>Closing Costs %</label>
+              <div class="input-wrap">
+                <input type="range" id="f-closing" min="7" max="10" step="1" value="8" style="padding:0.4rem 0.8rem;" oninput="calcFinance()">
+                <span class="suffix" id="f-closing-pct">8%</span>
+              </div>
+            </div>
+            <div class="field">
+              <label>Interest Rate</label>
+              <div class="input-wrap">
+                <select id="f-rate" onchange="calcFinance()">
+                  <option value="3">NHT — 3%</option>
+                  <option value="4">NHT — 4%</option>
+                  <option value="5">NHT — 5%</option>
+                  <option value="7">Commercial — 7%</option>
+                  <option value="8" selected>Commercial — 8%</option>
+                  <option value="9">Commercial — 9%</option>
+                  <option value="10">Commercial — 10%</option>
+                </select>
+              </div>
+            </div>
+            <div class="field">
+              <label>Loan Term (years)</label>
+              <div class="input-wrap">
+                <input type="range" id="f-term" min="15" max="40" step="5" value="30" style="padding:0.4rem 0.8rem;" oninput="calcFinance()">
+                <span class="suffix" id="f-term-yr">30 yrs</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div class="fin-result" style="margin-bottom:1rem;">
+            <div class="fr-label">Monthly Payment</div>
+            <div class="fr-val" id="f-payment">--</div>
+            <div class="fr-sub" id="f-payment-sub">Principal + Interest</div>
+          </div>
+          <div class="card">
+            <h3>📋 Financing Summary</h3>
+            <div class="break-row"><span class="b-name">Build Cost</span><span class="b-val" id="fs-cost">--</span></div>
+            <div class="break-row"><span class="b-name">Deposit (<span id="fs-dp-pct">10</span>%)</span><span class="b-val" id="fs-deposit">--</span></div>
+            <div class="break-row"><span class="b-name">Closing (<span id="fs-cl-pct">8</span>%)</span><span class="b-val" id="fs-closing">--</span></div>
+            <div class="break-row"><span class="b-name">Total Upfront</span><span class="b-val" id="fs-upfront">--</span></div>
+            <div class="break-row" style="border-top:2px solid var(--border);margin-top:0.3rem;padding-top:0.5rem;"><span class="b-name" style="font-weight:700;">Loan Amount</span><span class="b-val" style="font-weight:800;" id="fs-loan">--</span></div>
+            <div class="break-row"><span class="b-name">Total Interest Paid</span><span class="b-val" id="fs-interest">--</span></div>
+            <div class="break-row"><span class="b-name">Total Cost of Ownership</span><span class="b-val" id="fs-total">--</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RENTAL TAB -->
+    <div class="tab-panel" id="tab-rental">
+      <div class="grid-2">
+        <div>
+          <div class="card">
+            <h3>🏠 Rental Assumptions</h3>
+            <div class="field">
+              <label>Total Build Cost</label>
+              <div class="input-wrap"><input type="text" id="r-total" readonly style="font-weight:700;"><span class="suffix" id="r-curr">JMD</span></div>
+            </div>
+            <div class="field">
+              <label>Monthly Rent (<span id="r-curr-label">JMD</span>)</label>
+              <div class="input-wrap"><span class="prefix" id="r-prefix">J$</span><input type="number" id="r-rent" value="120000" min="0" step="1000" oninput="calcRental()"></div>
+            </div>
+            <div class="field">
+              <label>Annual Expenses % (maintenance, vacancy, etc.)</label>
+              <div class="input-wrap">
+                <input type="range" id="r-expense" min="0" max="40" step="5" value="15" style="padding:0.4rem 0.8rem;" oninput="calcRental()">
+                <span class="suffix" id="r-expense-pct">15%</span>
+              </div>
+            </div>
+            <div class="field">
+              <label>Property Management %</label>
+              <div class="input-wrap">
+                <input type="range" id="r-mgmt" min="0" max="15" step="1" value="10" style="padding:0.4rem 0.8rem;" oninput="calcRental()">
+                <span class="suffix" id="r-mgmt-pct">10%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div class="yield-box" style="margin-bottom:1rem;">
+            <div class="y-label">Gross Annual Yield</div>
+            <div class="y-val" id="r-yield">--</div>
+            <div class="y-sub" id="r-yield-sub">Rent ÷ Build Cost</div>
+          </div>
+          <div class="card">
+            <h3>📈 Unit Economics</h3>
+            <div class="break-row"><span class="b-name">Annual Gross Rent</span><span class="b-val" id="re-gross">--</span></div>
+            <div class="break-row"><span class="b-name">Operating Expenses</span><span class="b-val" id="re-opex">--</span></div>
+            <div class="break-row"><span class="b-name">Property Management</span><span class="b-val" id="re-mgmt">--</span></div>
+            <div class="break-row" style="border-top:2px solid var(--border);margin-top:0.3rem;padding-top:0.5rem;"><span class="b-name" style="font-weight:700;">Net Operating Income</span><span class="b-val" style="font-weight:800;" id="re-noi">--</span></div>
+            <div class="break-row"><span class="b-name">Net Annual Yield</span><span class="b-val" id="re-netyield">--</span></div>
+            <div class="break-row"><span class="b-name">Years to Break Even</span><span class="b-val" id="re-years">--</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="actions no-print">
+      <button class="btn btn-primary" onclick="copyShare()">🔗 Copy Share Link</button>
+      <button class="btn btn-outline" onclick="window.print()">🖨️ Print Quote</button>
+      <button class="btn btn-gold" onclick="resetAll()">↺ Reset</button>
+    </div>
+
+    <footer>
+      Built by BioHarmony Solutions · Data based on Jason Clarke's Jamaica Home & Land Calculator · For illustrative purposes only. Always get multiple contractor quotes.<br>
+      <a href="https://bioharmonysolutions.ca" target="_blank">bioharmonysolutions.ca</a>
+    </footer>
+  </div>
+
+  <div class="toast" id="toast">Copied to clipboard!</div>
+
+  <script>
+    // ===================== STATE =====================
+    const state = {
+      stories: 1, beds: 3, baths: 2, powder: 0, garage: 1,
+      type: 'block', // block | foam | modular
+      parish: 1.0,
+      currency: 'JMD',
+      unit: 'ft', // ft | m
+      rates: { block: 22000, foam: 17500, modular: 17500 },
+      custom: { block: 22000, foam: 17500, modular: 17500 },
+      fx: { JMD:1, CAD:113, USD:158, GBP:198, EUR:170, AUD:103 },
+      fxDate: 'cached',
+      // Default cost split (must sum to 100 before contingency)
+      split: {
+        foundation: 12,
+        roofing: 10,
+        electrical: 8,
+        plumbing: 7,
+        finishing: 18,
+        labor: 45
+      }
+    };
+
+    const colors = {
+      foundation: '#1B4D4D',
+      roofing: '#2a7a7a',
+      electrical: '#C9B686',
+      plumbing: '#d4a853',
+      finishing: '#8fb3b3',
+      labor: '#b8c9c9',
+      contingency: '#e8d9b0'
+    };
+
+    const splitLabels = {
+      foundation: 'Foundation',
+      roofing: 'Roofing',
+      electrical: 'Electrical',
+      plumbing: 'Plumbing',
+      finishing: 'Finishing',
+      labor: 'Labor / Other'
+    };
+
+    // ===================== FX FETCH =====================
+    async function fetchFX() {
+      try {
+        const res = await fetch('https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/jmd.json');
+        const data = await res.json();
+        if (data && data.jmd) {
+          const j = data.jmd;
+          const upd = {};
+          if (j.cad) upd.CAD = 1/j.cad;
+          if (j.usd) upd.USD = 1/j.usd;
+          if (j.gbp) upd.GBP = 1/j.gbp;
+          if (j.eur) upd.EUR = 1/j.eur;
+          if (j.aud) upd.AUD = 1/j.aud;
+          Object.assign(state.fx, upd);
+          state.fxDate = data.date || new Date().toISOString().slice(0,10);
+          document.getElementById('fxDate').textContent = state.fxDate;
+          document.getElementById('fxBadge').classList.remove('stale');
+          calc();
+        }
+      } catch(e) {
+        document.getElementById('fxBadge').classList.add('stale');
+      }
+    }
+    fetchFX();
+
+    // ===================== HELPERS =====================
+    function fmt(n, curr) {
+      const sym = {JMD:'J$',CAD:'C$',USD:'US$',GBP:'£',EUR:'€',AUD:'A$'}[curr];
+      if (n >= 1000000) return sym + (n/1000000).toFixed(1).replace(/\.0$/,'') + 'M';
+      if (n >= 1000) return sym + (n/1000).toFixed(1).replace(/\.0$/,'') + 'K';
+      return sym + n.toLocaleString(undefined,{maximumFractionDigits:0});
+    }
+    function fmtFull(n, curr) {
+      const sym = {JMD:'J$',CAD:'C$',USD:'US$',GBP:'£',EUR:'€',AUD:'A$'}[curr];
+      return sym + n.toLocaleString(undefined,{maximumFractionDigits:0});
+    }
+    function toJMD(n, curr) { return n * (state.fx[curr] || 1); }
+    function fromJMD(n, curr) { return n / (state.fx[curr] || 1); }
+    function toUnit(sqft) { return state.unit==='m' ? sqft*0.092903 : sqft; }
+    function unitSym() { return state.unit==='m' ? 'm²' : 'ft²'; }
+    function unitFactor() { return state.unit==='m' ? 0.092903 : 1; }
+
+    // ===================== UI UPDATES =====================
+    function adj(key, delta) {
+      const el = document.getElementById('v-'+key);
+      let v = parseInt(el.textContent) + delta;
+      const mins = {stories:1,beds:1,baths:1,powder:0,garage:0};
+      const maxs = {stories:5,beds:10,baths:10,powder:5,garage:4};
+      if (v < mins[key]) v = mins[key];
+      if (v > maxs[key]) v = maxs[key];
+      state[key] = v;
+      el.textContent = v;
+      calc();
+    }
+    function setType(t) {
+      state.type = t;
+      ['block','foam','modular'].forEach(x=>{
+        document.getElementById('t-'+x).classList.toggle('active', x===t);
+      });
+      document.getElementById('customRate').value = state.custom[t];
+      calc();
+    }
+    function customRateChange() {
+      const v = parseFloat(document.getElementById('customRate').value) || 0;
+      state.custom[state.type] = v;
+      state.rates[state.type] = v;
+      document.getElementById('r-'+state.type).textContent = 'J$' + v.toLocaleString() + ' / ft²';
+      calc();
+    }
+    function setCurrency(c) {
+      state.currency = c;
+      document.querySelectorAll('[data-c]').forEach(el=>el.classList.toggle('active', el.dataset.c===c));
+      calc(); calcFinance(); calcRental();
+    }
+    function setUnit(u) {
+      state.unit = u;
+      document.querySelectorAll('[data-u]').forEach(el=>el.classList.toggle('active', el.dataset.u===u));
+      calc();
+    }
+    function showTab(id) {
+      document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+      document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+      event.target.classList.add('active');
+      document.getElementById('tab-'+id).classList.add('active');
+      if (id==='finance') calcFinance();
+      if (id==='rental') calcRental();
+    }
+
+    // ===================== BUILD CALC =====================
+    function calc() {
+      const {stories,beds,baths,powder,garage,type,parish,currency,unit,rates,split} = state;
+      const rateJMD = rates[type];
+
+      // Floor area (always in sqft internally)
+      const aStories = stories * 350;
+      const aBeds = beds * 180;
+      const aBaths = baths * 65;
+      const aPowder = powder * 35;
+      const aGarage = garage * 280;
+      const sqft = aStories + aBeds + aBaths + aPowder + aGarage;
+
+      // Base cost in JMD
+      const baseJMD = sqft * rateJMD * parish;
+      const contingency = baseJMD * 0.10;
+      const totalJMD = baseJMD + contingency;
+
+      // Split amounts
+      const parts = {};
+      let sumSplit = 0;
+      for (const k in split) {
+        parts[k] = baseJMD * (split[k]/100);
+        sumSplit += split[k];
+      }
+      parts.contingency = contingency;
+
+      // Convert to display currency
+      const totalDisp = fromJMD(totalJMD, currency);
+      const baseDisp = fromJMD(baseJMD, currency);
+
+      // Update floor area display
+      const uf = unitFactor();
+      document.getElementById('a-stories').textContent = Math.round(aStories*uf).toLocaleString()+' '+unitSym();
+      document.getElementById('a-beds').textContent = Math.round(aBeds*uf).toLocaleString()+' '+unitSym();
+      document.getElementById('a-baths').textContent = Math.round(aBaths*uf).toLocaleString()+' '+unitSym();
+      document.getElementById('a-powder').textContent = Math.round(aPowder*uf).toLocaleString()+' '+unitSym();
+      document.getElementById('a-garage').textContent = Math.round(aGarage*uf).toLocaleString()+' '+unitSym();
+      document.getElementById('a-total').textContent = Math.round(sqft*uf).toLocaleString()+' '+unitSym();
+
+      // Update total box
+      document.getElementById('totalCost').textContent = fmtFull(totalDisp, currency);
+      const alt = currency==='JMD' ? ('≈ '+fmt(totalDisp/state.fx.CAD,'CAD')) : ('≈ '+fmt(totalJMD,'JMD'));
+      document.getElementById('totalSub').textContent = `${alt} · ${Math.round(sqft*uf).toLocaleString()} ${unitSym()} · ${type==='block'?'Concrete Block':type==='foam'?'Foam / ICF':'Precast / Modular'}`;
+
+      // Update construction rate labels
+      for (const k of ['block','foam','modular']) {
+        const r = fromJMD(rates[k], currency);
+        const sym = {JMD:'J$',CAD:'C$',USD:'US$',GBP:'£',EUR:'€',AUD:'A$'}[currency];
+        const per = unit==='m' ? (r/0.092903) : r;
+        const us = unit==='m' ? '/ m²' : '/ ft²';
+        document.getElementById('r-'+k).textContent = sym + Math.round(per).toLocaleString() + ' ' + us;
+      }
+
+      // Cost breakdown lines
+      let html = '';
+      for (const k of ['foundation','roofing','electrical','plumbing','finishing','labor']) {
+        const pct = split[k];
+        const val = fromJMD(parts[k], currency);
+        html += `<div class="break-row">
+          <span class="b-name">${splitLabels[k]}</span>
+          <input type="number" class="pct-input" value="${pct}" min="0" max="100" step="1" onchange="updateSplit('${k}',this.value)">
+          <span class="b-val">${fmtFull(val,currency)}</span>
+        </div>`;
+      }
+      html += `<div class="break-row" style="border-top:2px solid var(--border);margin-top:0.3rem;padding-top:0.5rem;">
+        <span class="b-name">Contingency (10%)</span>
+        <span class="b-pct">fixed</span>
+        <span class="b-val" style="font-weight:800;">${fmtFull(fromJMD(parts.contingency,currency),currency)}</span>
+      </div>`;
+      document.getElementById('costLines').innerHTML = html;
+
+      // Render donut
+      renderDonut(parts, totalJMD);
+
+      // Sync financing & rental tabs
+      document.getElementById('f-total').value = fmtFull(totalDisp, currency);
+      document.getElementById('f-curr').textContent = currency;
+      document.getElementById('r-total').value = fmtFull(totalDisp, currency);
+      document.getElementById('r-curr').textContent = currency;
+      document.getElementById('r-curr-label').textContent = currency;
+      document.getElementById('r-prefix').textContent = {JMD:'J$',CAD:'C$',USD:'US$',GBP:'£',EUR:'€',AUD:'A$'}[currency];
+
+      updateURL();
+    }
+
+    function updateSplit(key, val) {
+      let v = parseFloat(val) || 0;
+      if (v < 0) v = 0; if (v > 100) v = 100;
+      state.split[key] = v;
+      calc();
+    }
+
+    function renderDonut(parts, total) {
+      const svg = document.getElementById('donutChart');
+      const legend = document.getElementById('chartLegend');
+      const cx=50, cy=50, r=35, stroke=14;
+      const circ = 2*Math.PI*r;
+      let off = 0;
+      let svgHTML = '';
+      let legHTML = '';
+      const keys = ['foundation','roofing','electrical','plumbing','finishing','labor','contingency'];
+      for (const k of keys) {
+        const pct = parts[k]/total;
+        const dash = pct * circ;
+        svgHTML += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${colors[k]}" stroke-width="${stroke}" stroke-dasharray="${dash} ${circ-dash}" stroke-dashoffset="${-off}" transform="rotate(-90 ${cx} ${cy})"/>`;
+        off += dash;
+        legHTML += `<div class="legend-item"><div class="legend-dot" style="background:${colors[k]}"></div><span>${splitLabels[k]||'Contingency'} · ${(pct*100).toFixed(1)}%</span></div>`;
+      }
+      svg.innerHTML = svgHTML;
+      legend.innerHTML = legHTML;
+    }
+
+    // ===================== FINANCING =====================
+    function calcFinance() {
+      const dpPct = parseFloat(document.getElementById('f-deposit').value)/100;
+      const clPct = parseFloat(document.getElementById('f-closing').value)/100;
+      const rate = parseFloat(document.getElementById('f-rate').value)/100;
+      const years = parseInt(document.getElementById('f-term').value);
+      document.getElementById('f-deposit-pct').textContent = Math.round(dpPct*100)+'%';
+      document.getElementById('f-closing-pct').textContent = Math.round(clPct*100)+'%';
+      document.getElementById('f-term-yr').textContent = years+' yrs';
+
+      // Get total build cost from state (convert from display currency back to JMD then to whatever)
+      const {stories,beds,baths,powder,garage,type,parish,rates,currency} = state;
+      const sqft = stories*350 + beds*180 + baths*65 + powder*35 + garage*280;
+      const baseJMD = sqft * rates[type] * parish;
+      const totalJMD = baseJMD * 1.10;
+      const total = fromJMD(totalJMD, currency);
+
+      const deposit = total * dpPct;
+      const closing = total * clPct;
+      const upfront = deposit + closing;
+      const loan = total - deposit;
+      const n = years * 12;
+      const r = rate / 12;
+      const pmt = loan * (r * Math.pow(1+r,n)) / (Math.pow(1+r,n)-1);
+      const totalPaid = pmt * n;
+      const totalInterest = totalPaid - loan;
+      const totalOwnership = total + closing + totalInterest;
+
+      document.getElementById('f-payment').textContent = fmtFull(pmt, currency)+'/mo';
+      document.getElementById('f-payment-sub').textContent = `${(rate*100).toFixed(0)}% over ${years} years`;
+
+      document.getElementById('fs-cost').textContent = fmtFull(total, currency);
+      document.getElementById('fs-dp-pct').textContent = Math.round(dpPct*100);
+      document.getElementById('fs-deposit').textContent = fmtFull(deposit, currency);
+      document.getElementById('fs-cl-pct').textContent = Math.round(clPct*100);
+      document.getElementById('fs-closing').textContent = fmtFull(closing, currency);
+      document.getElementById('fs-upfront').textContent = fmtFull(upfront, currency);
+      document.getElementById('fs-loan').textContent = fmtFull(loan, currency);
+      document.getElementById('fs-interest').textContent = fmtFull(totalInterest, currency);
+      document.getElementById('fs-total').textContent = fmtFull(totalOwnership, currency);
+    }
+
+    // ===================== RENTAL =====================
+    function calcRental() {
+      const rent = parseFloat(document.getElementById('r-rent').value) || 0;
+      const expPct = parseFloat(document.getElementById('r-expense').value)/100;
+      const mgmtPct = parseFloat(document.getElementById('r-mgmt').value)/100;
+      document.getElementById('r-expense-pct').textContent = Math.round(expPct*100)+'%';
+      document.getElementById('r-mgmt-pct').textContent = Math.round(mgmtPct*100)+'%';
+
+      const {stories,beds,baths,powder,garage,type,parish,rates,currency} = state;
+      const sqft = stories*350 + beds*180 + baths*65 + powder*35 + garage*280;
+      const totalJMD = sqft * rates[type] * parish * 1.10;
+      const total = fromJMD(totalJMD, currency);
+
+      const gross = rent * 12;
+      const opex = gross * expPct;
+      const mgmt = gross * mgmtPct;
+      const noi = gross - opex - mgmt;
+      const grossYield = total > 0 ? (gross/total)*100 : 0;
+      const netYield = total > 0 ? (noi/total)*100 : 0;
+      const years = noi > 0 ? total/noi : 0;
+
+      document.getElementById('r-yield').textContent = grossYield.toFixed(2)+'%';
+      document.getElementById('r-yield-sub').textContent = `Rent ${fmtFull(rent,currency)}/mo · Build ${fmtFull(total,currency)}`;
+
+      document.getElementById('re-gross').textContent = fmtFull(gross, currency);
+      document.getElementById('re-opex').textContent = '-'+fmtFull(opex, currency);
+      document.getElementById('re-mgmt').textContent = '-'+fmtFull(mgmt, currency);
+      document.getElementById('re-noi').textContent = fmtFull(noi, currency);
+      document.getElementById('re-netyield').textContent = netYield.toFixed(2)+'%';
+      document.getElementById('re-years').textContent = years > 0 ? years.toFixed(1)+' yrs' : '∞';
+    }
+
+    // ===================== URL STATE =====================
+    function updateURL() {
+      const p = new URLSearchParams();
+      p.set('s',state.stories); p.set('bd',state.beds); p.set('bt',state.baths);
+      p.set('pw',state.powder); p.set('g',state.garage); p.set('t',state.type);
+      p.set('p',state.parish); p.set('c',state.currency); p.set('u',state.unit);
+      p.set('rb',state.custom.block); p.set('rf',state.custom.foam); p.set('rm',state.custom.modular);
+      for (const k in state.split) p.set('sp_'+k, state.split[k]);
+      history.replaceState(null,'','?'+p.toString());
+    }
+    function loadURL() {
+      const p = new URLSearchParams(location.search);
+      if (!p.has('s')) return;
+      state.stories = parseInt(p.get('s'))||1;
+      state.beds = parseInt(p.get('bd'))||3;
+      state.baths = parseInt(p.get('bt'))||2;
+      state.powder = parseInt(p.get('pw'))||0;
+      state.garage = parseInt(p.get('g'))||1;
+      state.type = p.get('t')||'block';
+      state.parish = parseFloat(p.get('p'))||1;
+      state.currency = p.get('c')||'JMD';
+      state.unit = p.get('u')||'ft';
+      if (p.has('rb')) state.custom.block = parseFloat(p.get('rb'));
+      if (p.has('rf')) state.custom.foam = parseFloat(p.get('rf'));
+      if (p.has('rm')) state.custom.modular = parseFloat(p.get('rm'));
+      state.rates = {...state.custom};
+      for (const k in state.split) { if (p.has('sp_'+k)) state.split[k] = parseFloat(p.get('sp_'+k)); }
+
+      // Update UI
+      document.getElementById('v-stories').textContent = state.stories;
+      document.getElementById('v-beds').textContent = state.beds;
+      document.getElementById('v-baths').textContent = state.baths;
+      document.getElementById('v-powder').textContent = state.powder;
+      document.getElementById('v-garage').textContent = state.garage;
+      document.getElementById('parish').value = String(state.parish);
+      document.getElementById('customRate').value = state.custom[state.type];
+      setCurrency(state.currency); setUnit(state.unit); setType(state.type);
+    }
+
+    function copyShare() {
+      updateURL();
+      navigator.clipboard.writeText(location.href).then(()=>{
+        const t = document.getElementById('toast');
+        t.classList.add('show');
+        setTimeout(()=>t.classList.remove('show'),2200);
+      });
+    }
+    function resetAll() {
+      state.stories=1; state.beds=3; state.baths=2; state.powder=0; state.garage=1;
+      state.type='block'; state.parish=1; state.currency='JMD'; state.unit='ft';
+      state.custom={block:22000,foam:17500,modular:17500};
+      state.rates={block:22000,foam:17500,modular:17500};
+      state.split={foundation:12,roofing:10,electrical:8,plumbing:7,finishing:18,labor:45};
+      document.getElementById('v-stories').textContent=1; document.getElementById('v-beds').textContent=3;
+      document.getElementById('v-baths').textContent=2; document.getElementById('v-powder').textContent=0;
+      document.getElementById('v-garage').textContent=1; document.getElementById('parish').value='1.00';
+      document.getElementById('customRate').value=22000;
+      document.getElementById('f-deposit').value=10; document.getElementById('f-closing').value=8;
+      document.getElementById('f-rate').value=8; document.getElementById('f-term').value=30;
+      document.getElementById('r-rent').value=120000; document.getElementById('r-expense').value=15;
+      document.getElementById('r-mgmt').value=10;
+      setCurrency('JMD'); setUnit('ft'); setType('block');
+      history.replaceState(null,'',location.pathname);
+    }
+
+    // ===================== INIT =====================
+    function init() {
+      loadURL();
+      calc();
+      calcFinance();
+      calcRental();
+      // Build breakdown editor
+      let ed = '';
+      for (const k in state.split) {
+        ed += `<div class="field" style="margin-bottom:0.5rem;">
+          <label>${splitLabels[k]}</label>
+          <div class="input-wrap">
+            <input type="range" min="0" max="60" step="1" value="${state.split[k]}" oninput="updateSplit('${k}',this.value); document.getElementById('spv-${k}').textContent=this.value+'%'" style="padding:0.3rem 0.7rem;">
+            <span class="suffix" id="spv-${k}">${state.split[k]}%</span>
+          </div>
+        </div>`;
+      }
+      document.getElementById('breakdownEditor').innerHTML = ed;
+    }
+    init();
+  </script>
+</body>
+</html>
